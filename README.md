@@ -6,21 +6,32 @@ It has been prepared for an AWS EC2 instance running AWS Graviton processors.
 
 ### Start an AWS EC2 instance with Graviton
 
-Launch a c6g.medium instance type running Ubuntu 22.04 
+Launch a t4g.small instance type running Ubuntu 22.04 
 
-Set up ssh access to the machine
+t4g.small has a free trial running until December 31, 2022
+
+Connect to the EC2 instance using ssh or another method. Refer to the [AWS documenation for more details](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstances.html)
 
 ### Setup 
 
 Note the default libz package is zlib 1.2.11
 
-Set the default python to be python3.
+Set the default python to be python3
 
 ```console
+sudo apt update
+sudo apt install make gcc -y
 sudo apt install python-is-python3 -y
 ```
 
-Install perf:
+Clone the project
+
+```console
+git clone https://github.com/jasonrandrews/zip.git
+cd zip
+```
+
+Install perf
 
 ```console
 sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r` -y
@@ -35,17 +46,34 @@ dd if=/dev/zero of=largefile count=1M bs=1024
 
 ### Compress the file
 
+Run the python program to gzip the largefile
+
 ```console
 perf stat python ./zip.py
 ```
-
-Note the seconds of elapsed time.
+Note the seconds of elapsed time
 
 ### Generage the flame graph
 
 ```console
 perf record -F 99 -g python ./zip.py
+git clone https://github.com/brendangregg/FlameGraph
+perf script | ./FlameGraph/stackcollapse-perf.pl > out.perf-folded && ./FlameGraph/flamegraph.pl out.perf-folded > flamegraph1.svg
+```
+
+Run perf report
+
+```console
 perf report
+```
+
+Note that the crc32 function is taking significant time
+
+69.92%    68.27%  python   libz.so.1.2.11         [.] crc32
+
+Generate the flame graph
+
+```console
 git clone https://github.com/brendangregg/FlameGraph
 perf script | ./FlameGraph/stackcollapse-perf.pl > out.perf-folded && ./FlameGraph/flamegraph.pl out.perf-folded > flamegraph1.svg
 ```
@@ -67,8 +95,9 @@ If it returns 0 there are no crc instructions in libz.
 
 ```console
 git clone https://github.com/cloudflare/zlib.git
-cd zlib && mkdir ~/zlib && ./configure --prefix=$HOME/zlib
-make && make install && cd ~/zip
+pushd zlib && mkdir ~/zlib && ./configure --prefix=$HOME/zlib
+make && make install
+popd
 ```
 Confirm new libz has crc instructions.
 
