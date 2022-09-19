@@ -73,13 +73,6 @@ Note that the crc32 function is taking significant time
 
 69.92%    68.27%  python   libz.so.1.2.11         [.] crc32
 
-Generate the flame graph
-
-```console
-git clone https://github.com/brendangregg/FlameGraph
-perf script | ./FlameGraph/stackcollapse-perf.pl > out.perf-folded && ./FlameGraph/flamegraph.pl out.perf-folded > flamegraph1.svg
-```
-
 ### Confirm crc32 is included in the processor flags
 
 ```console
@@ -98,7 +91,7 @@ If it returns 0 there are no crc instructions in libz.
 ```console
 git clone https://github.com/cloudflare/zlib.git
 pushd zlib && mkdir ~/zlib && ./configure 
-make && make install
+make && sudo make install
 popd
 ```
 Confirm new libz has crc instructions.
@@ -116,7 +109,7 @@ LD_PRELOAD=/usr/local/lib/libz.so  perf stat python ./zip.py
 Note the new seconds of elapsed time.
 
 ```console
-perf record -F 99 -g python ./zip.py
+LD_PRELOAD=/usr/local/lib/libz.so perf perf record -F 99 -g python ./zip.py
 perf script | ./FlameGraph/stackcollapse-perf.pl > out.perf-folded && ./FlameGraph/flamegraph.pl out.perf-folded > flamegraph2.svg
 ```
 
