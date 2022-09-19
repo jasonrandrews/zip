@@ -93,7 +93,7 @@ If it returns 0 there are no crc instructions in libz.
 
 ```console
 git clone https://github.com/cloudflare/zlib.git
-pushd zlib && mkdir ~/zlib && ./configure 
+pushd zlib && ./configure 
 make && sudo make install
 popd
 ```
