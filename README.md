@@ -2,25 +2,21 @@
 
 This demo illustrates how to improve performance of libz for a Python application.
 
-It has been prepared for an AWS EC2 instance running AWS Graviton processors.
+It has been prepared for an Arm Neoverse system running Ubuntu. 
 
-### Start an AWS EC2 instance with Graviton
+It can be run on any cloud provider offering Arm instances, including AWS, Oracle Cloud, Google Cloud, or Microsoft Azure.
 
-Launch a t4g.small instance type running Ubuntu 22.04 
-
-t4g.small has a free trial running until December 31, 2022
-
-Connect to the EC2 instance using ssh or another method. Refer to the [AWS documenation for more details](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstances.html)
+For more info about Arm cloud instances refer to [Getting Started with Arm Cloud instances](https://github.com/jasonrandrews/arm-cloud-info)
 
 ### Setup 
 
-Note the default libz package is zlib 1.2.11
+This example explains how to improve application performance using a custom version of zlib.
 
 Set the default python to be python3
 
 ```console
 sudo apt update
-sudo apt install make gcc -y
+sudo apt install build-essential -y
 sudo apt install python-is-python3 -y
 ```
 
@@ -52,6 +48,12 @@ Run the python program to gzip the largefile
 perf stat python ./zip.py
 ```
 Note the seconds of elapsed time
+
+It's also possible to just time the execution.
+
+```console
+time python ./zip.py
+```
 
 ### Generage the flame graph
 
@@ -95,20 +97,20 @@ If it returns 0 there are no crc instructions in libz.
 
 ```console
 git clone https://github.com/cloudflare/zlib.git
-pushd zlib && mkdir ~/zlib && ./configure --prefix=$HOME/zlib
+pushd zlib && mkdir ~/zlib && ./configure 
 make && make install
 popd
 ```
 Confirm new libz has crc instructions.
 
 ```console
-objdump -d ~/zlib/lib/libz.so | awk -F " "  '{print $3}' | grep crc32 | wc -l
+objdump -d /usr/local/lib/libz.so | awk -F " "  '{print $3}' | grep crc32 | wc -l
 ```
 
 ### Run the python program again
 
 ```console
-LD_PRELOAD=~/zlib/lib/libz.so  perf stat python ./zip.py
+LD_PRELOAD=/usr/local/lib/libz.so  perf stat python ./zip.py
 ```
 
 Note the new seconds of elapsed time.
@@ -118,3 +120,4 @@ perf record -F 99 -g python ./zip.py
 perf script | ./FlameGraph/stackcollapse-perf.pl > out.perf-folded && ./FlameGraph/flamegraph.pl out.perf-folded > flamegraph2.svg
 ```
 
+For more infomation refer to [Improve data compression performance on AWS Graviton processors](https://dev.to/aws-builders/improve-data-compression-performance-on-aws-graviton-processors-1pg0)
