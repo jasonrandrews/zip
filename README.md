@@ -1,3 +1,5 @@
+This info is out of date, please refer to the Learning Path [Learn how to build and use Cloudflare zlib on Arm servers](https://learn.arm.com/learning-paths/servers-and-cloud-computing/zlib/)
+
 # Example Python program to gzip a large file
 
 This demo illustrates how to improve performance of libz for a Python application.
